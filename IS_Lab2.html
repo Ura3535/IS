@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8" />
+  <title>Онтологія - Живі організми</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 30px;
+      background-color: #f4f4f9;
+    }
+    h1 {
+      color: #333;
+    }
+    label {
+      font-weight: bold;
+    }
+    select, button {
+      padding: 8px;
+      margin: 10px 0;
+      width: 320px;
+    }
+    #result {
+      margin-top: 20px;
+      background: #fff;
+      padding: 15px;
+      border-left: 5px solid #4caf50;
+      white-space: pre-wrap;
+    }
+    .muted {
+      color: #666;
+      font-size: 0.9em;
+    }
+  </style>
+</head>
+<body>
+  <h1>Розважальна медіа індустрія</h1>
+  
+  <label for="subject">Суб’єкт 1:</label><br>
+  <select id="subject"></select><br>
+  
+  <label for="object">Об’єкт 2:</label><br>
+  <select id="object"></select><br>
+  
+  <button onclick="runQuery()">Запитати чи є зв'язок</button>
+
+  <div id="result"></div>
+
+  <script>
+    const classes = {
+      "Кінофільм": { instances: ["Гаррі Поттер і філософський камінь", "Володар перснів: Братство персня"] },
+      "Мультфільм": { instances: ["Король Лев", "Як приборкати дракона"] },
+      "Серіал": { instances: ["Шерлок", "Гра престолів"] },
+      "Твір": { instances: ["Гаррі Поттер і філософський камінь", "Володар перснів: Хранителі персня"] },
+      "Серія творів": { instances: ["Пригоди Гаррі Поттера", "Володар перснів"] },
+      "Відеогра": { instances: ["Hogwarts Legacy", "The Witcher 3: Wild Hunt"] },
+      "Письменник": { instances: ["Джоан Роулінг", "Дж. Р. Р. Толкін"] },
+      "Продюсер": { instances: ["Девід Гайман", "Пітер Джексон"] },
+      "Видавець": { instances: ["Bloomsbury Publishing", "Scholastic"] },
+      "Розробник": { instances: ["Avalanche Software", "CD Projekt RED"] },
+      "Жанр": { instances: ["Фантастика", "Фентезі"] },
+      "Серія ігор": { instances: ["Halo Series", "The Witcher Series"] },
+      "Індустрія": { instances: ["Кіноіндустрія", "Ігрова індустрія"] },
+      "Компанія": { instances: ["Warner Bros.", "New Line Cinema"] },
+      "Персонаж": { instances: ["Албус Дамблдор", "Фродо Беґгінс"] },
+      "Актор": { instances: ["Даніел Редкліфф", "Елайджа Вуд"] },
+      "Режисер": { instances: ["Кріс Коламбус", "Пітер Джексон"] },
+      "Сценарист": { instances: ["Стівен Кловс", "Френ Волш"] },
+      "Композитор": { instances: ["Джон Вільямс", "Говард Шор"] },
+      "Оператор": { instances: ["Ендрю Лесні", "Роберт Річардсон"] },
+      "Студія": { instances: ["Warner Bros. Pictures", "New Line Cinema"] },
+    };
+
+    const partOf = [
+      { part: "Гаррі Поттер і філософський камінь", whole: "Пригоди Гаррі Поттера" },
+      { part: "Володар перснів: Братство персня", whole: "Володар перснів" },
+      { part: "Hogwarts Legacy", whole: "Пригоди Гаррі Поттера" },
+      { part: "The Witcher 3: Wild Hunt", whole: "The Witcher Series" },
+    ];
+
+    const belongsTo = [
+      { the: "Warner Bros. Pictures", belongsTo: "Кіноіндустрія" },
+      { the: "Гаррі Поттер і філософський камінь", belongsTo: "Кіноіндустрія" },
+      { the: "Володар перснів: Братство персня", belongsTo: "Кіноіндустрія" },
+      { the: "New Line Cinema", belongsTo: "Кіноіндустрія" },
+      { the: "Avalanche Software", belongsTo: "Ігрова індустрія" },
+      { the: "The Witcher 3: Wild Hunt", belongsTo: "Ігрова індустрія" },
+      { the: "Hogwarts Legacy", belongsTo: "Ігрова індустрія" },
+    ];
+
+    const isA = [
+      { the: "Гаррі Поттер і філософський камінь", is: "Фентезі" },
+      { the: "Володар перснів: Братство персня", is: "Фентезі" },
+      { the: "Hogwarts Legacy", is: "Фентезі" },
+      { the: "The Witcher 3: Wild Hunt", is: "Фантастика" }
+    ];
+
+    const participatedIn = [
+      { who: "Джоан Роулінг", role: "Автор (оригінальний твір)", of: "Гаррі Поттер" },
+      { who: "Девід Гайман", role: "Продюсер", of: "Гаррі Поттер і філософський камінь" },
+      { who: "Пітер Джексон", role: "Режисер/Продюсер", of: "Володар перснів: Братство персня" },
+      { who: "Джон Вільямс", role: "Композитор", of: "Гаррі Поттер і філософський камінь" },
+      { who: "Говард Шор", role: "Композитор", of: "Володар перснів: Братство персня" },
+      { who: "Даніел Редкліфф", role: "Грав роль Гаррі Поттера", of: "Гаррі Поттер і філософський камінь" },
+      { who: "Елайджа Вуд", role: "Грав роль Фродо Беґгінса", of: "Володар перснів: Братство персня" },
+      { who: "Avalanche Software", role: "Розробив гру", of: "Hogwarts Legacy" },
+      { who: "CD Projekt RED", role: "Розробив гру", of: "The Witcher 3: Wild Hunt" },
+      { who: "Warner Bros. Games", role: "Видав гру", of: "The Witcher 3: Wild Hunt" },
+      { who: "CD Projekt", role: "Видав гру", of: "The Witcher 3: Wild Hunt" },
+      { who: "Warner Bros. Pictures", role: "Студія-виробник", of: "Гаррі Поттер і філософський камінь" },
+      { who: "New Line Cinema", role: "Студія-виробник", of: "Володар перснів: Братство персня" },
+      { who: "Албус Дамблдор", role: "Персонаж", of: "Гаррі Поттер і філософський камінь" },
+      { who: "Фродо Беґгінс", role: "Персонаж", of: "Володар перснів: Братство персня" },
+    ];
+
+    function gatherAllInstances(classesObj) {
+      const set = new Set();
+      for (const k in classesObj) {
+        const arr = classesObj[k].instances || [];
+        arr.forEach(i => set.add(i));
+      }
+      return Array.from(set).sort((a,b)=> a.localeCompare(b, 'uk'));
+    }
+
+    const allInstances = gatherAllInstances(classes);
+
+    function populateSelects() {
+      const s1 = document.getElementById('subject');
+      const s2 = document.getElementById('object');
+      const addOption = (sel, val) => {
+        const opt = document.createElement('option');
+        opt.value = val;
+        opt.textContent = val;
+        sel.appendChild(opt);
+      };
+      
+      addOption(s1, "");
+      addOption(s2, "");
+      allInstances.forEach(item => {
+        addOption(s1, item);
+        addOption(s2, item);
+      });
+    }
+
+    populateSelects();
+
+    function buildGraph() {
+      const graph = new Map();
+      function ensure(n) { if(!graph.has(n)) graph.set(n, []); }
+      function addEdge(a,b,label) {
+        ensure(a); ensure(b);
+        graph.get(a).push({ to: b, label });
+        graph.get(b).push({ to: a, label: label + " (reverse)" });
+      }
+
+      partOf.forEach(p => addEdge(p.part, p.whole, 'partOf'));
+
+      belongsTo.forEach(b => addEdge(b.the, b.belongsTo, 'belongsTo'));
+
+      isA.forEach(i => addEdge(i.the, i.is, 'isA'));
+
+      participatedIn.forEach(p => {
+        const label = p.role ? `participatedIn (${p.role})` : 'participatedIn';
+        addEdge(p.who, p.of, label);
+      });
+
+      return graph;
+    }
+
+    const graph = buildGraph();
+
+    function findPathBFS(start, goal, graph, maxDepth=20) {
+      if (!start || !goal) return null;
+      if (start === goal) return { path: [start], edges: [] };
+
+      const queue = [];
+      const visited = new Set();
+      const parent = new Map();
+
+      queue.push({node: start, depth: 0});
+      visited.add(start);
+
+      while (queue.length > 0) {
+        const {node, depth} = queue.shift();
+        if (depth >= maxDepth) continue;
+        const neighbors = graph.get(node) || [];
+        for (const edge of neighbors) {
+          const nxt = edge.to;
+          if (!visited.has(nxt)) {
+            visited.add(nxt);
+            parent.set(nxt, { prev: node, via: edge.label });
+            if (nxt === goal) {
+              const nodes = [];
+              const edges = [];
+              let cur = goal;
+              while (cur !== start) {
+                const info = parent.get(cur);
+                nodes.push(cur);
+                edges.push(info.via);
+                cur = info.prev;
+              }
+              nodes.push(start);
+              nodes.reverse();
+              edges.reverse();
+              return { path: nodes, edges };
+            }
+            queue.push({node: nxt, depth: depth+1});
+          }
+        }
+      }
+      return null;
+    }
+
+    function runQuery() {
+      const s = document.getElementById('subject').value;
+      const o = document.getElementById('object').value;
+      const out = document.getElementById('result');
+      out.innerHTML = '';
+
+      if (!s || !o) {
+        out.innerHTML = '<div class="muted">Оберіть обидва об\'єкти у списках зверху.</div>';
+        return;
+      }
+
+      const res = findPathBFS(s, o, graph, 30);
+      if (!res) {
+        out.innerHTML = `<strong>Зв'язок не знайдено</strong>\n\nМіж «${s}» і «${o}» немає ланцюжка зв'язків у поточній базі (пошук до глибини 30).`;
+        return;
+      }
+
+      const parts = [];
+      for (let i = 0; i < res.path.length - 1; i++) {
+        const a = res.path[i];
+        const b = res.path[i+1];
+        const lbl = res.edges[i];
+        parts.push(`${a}  --[${lbl}]-->  ${b}`);
+      }
+
+      out.innerHTML = `<strong>Зв'язок знайдено!</strong>\n\nМаршрут (${res.path.length} вузлів):\n\n${parts.join('\n')}`;
+    }
+
+    document.getElementById('result').innerHTML = `<div class="muted">Оберіть два об'єкти зі списків вище та натисніть «Запитати». У базі ${allInstances.length} об'єктів.</div>`;
+  </script>
+</body>
+</html>
